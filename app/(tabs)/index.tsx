@@ -1,98 +1,134 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { SearchForm } from '../../src/components/SearchForm';
+import { appService } from '../../src/services/app.service';
+import { Note } from '../../src/interfaces';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [loading, setLoading] = useState(false);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const handleSearch = async (cedula: string, nombre: string) => {
+    try {
+      setLoading(true);
+      setNotes([]); 
+      setMessage(null);
+      
+      const data = await appService.getNotesByStudent(cedula, nombre);
+      
+      if (Array.isArray(data) && data.length > 0) {
+        setNotes(data);
+      } else if (data && !Array.isArray(data)) {
+        setNotes([data as any]);
+      } else {
+        setMessage('El usuario no tiene notas.');
+      }
+    } catch (error: any) {
+      console.error(error);
+      if (error.response && error.response.status === 404) {
+        setMessage('El usuario no tiene notas.');
+      } else {
+        setMessage('No se pudo consultar');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.content}>
+        <SearchForm onSearch={handleSearch} isLoading={loading} />
+
+        {loading && <ActivityIndicator size="large" color="#4A90E2" style={styles.loader} />}
+
+        {message && !loading && (
+          <View style={styles.messageBox}>
+            <Text style={styles.messageText}>{message}</Text>
+          </View>
+        )}
+
+        {notes.length > 0 && !loading && (
+          <View style={styles.listContainer}>
+            {notes.map((note, idx) => (
+              <View key={note.id || idx} style={styles.resultsContainer}>
+                {note.materia ? <Text style={styles.resultText}>Materia: {note.materia}</Text> : null}
+                <Text style={styles.resultText}>Nota 1: {note.nota1}</Text>
+                <Text style={styles.resultText}>Nota 2: {note.nota2}</Text>
+                <Text style={styles.resultText}>Nota 3: {note.nota3}</Text>
+                <Text style={styles.resultText}>Nota 4: {note.nota4}</Text>
+                
+                <View style={styles.divider} />
+                <Text style={styles.definitivaText}>Definitiva: {note.definitiva}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flexGrow: 1,
+    backgroundColor: '#f5f7fa',
+  },
+  content: {
+    flex: 1,
+    padding: 20,
+    width: '100%',
+  },
+  loader: {
+    marginTop: 20,
+  },
+  messageBox: {
+    backgroundColor: '#fff3cd',
+    padding: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ffeeba',
+    marginTop: 10,
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
+  messageText: {
+    color: '#856404',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  listContainer: {
+    marginTop: 10,
+  },
+  resultsContainer: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 16,
+    padding: 24,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    marginBottom: 15,
+  },
+  resultText: {
+    fontSize: 16,
+    color: '#444',
     marginBottom: 8,
+    fontWeight: '500',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  divider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    width: '80%',
+    marginVertical: 10,
   },
+  definitivaText: {
+    fontSize: 18,
+    color: '#006600',
+    fontWeight: 'bold',
+  }
 });
