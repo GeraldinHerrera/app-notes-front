@@ -7,8 +7,7 @@ export default function StudentsScreen() {
     cedula: '',
     nombre: '',
     correo: '',
-    celular: '',
-    materia: ''
+    celular: ''
   });
   
   const [loading, setLoading] = useState(false);
@@ -20,9 +19,9 @@ export default function StudentsScreen() {
 
   const handleRegister = async () => {
     setMessage(null);
-    const { cedula, nombre, correo, celular, materia } = form;
+    const { cedula, nombre, correo, celular } = form;
 
-    if (!cedula.trim() || !nombre.trim() || !correo.trim() || !celular.trim() || !materia.trim()) {
+    if (!cedula.trim() || !nombre.trim() || !correo.trim() || !celular.trim()) {
       setMessage({ text: 'Por favor complete todos los campos.', type: 'error' });
       return;
     }
@@ -33,12 +32,11 @@ export default function StudentsScreen() {
         cedula: cedula.trim(),
         nombre: nombre.trim(),
         correo: correo.trim(),
-        celular: celular.trim(),
-        materia: materia.trim()
+        celular: celular.trim()
       });
       
       setMessage({ text: '¡El estudiante se guardó bien', type: 'success' });
-      setForm({ cedula: '', nombre: '', correo: '', celular: '', materia: '' });
+      setForm({ cedula: '', nombre: '', correo: '', celular: '' });
 
     } catch (error) {
       console.error(error);
@@ -104,15 +102,7 @@ export default function StudentsScreen() {
           />
         </View>
 
-        <View style={styles.inputRow}>
-          <Text style={styles.label}>Materia</Text>
-          <TextInput
-            style={styles.input}
-            value={form.materia}
-            onChangeText={(val) => handleChange('materia', val)}
-            placeholder="Ingrese la materia"
-          />
-        </View>
+
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity 

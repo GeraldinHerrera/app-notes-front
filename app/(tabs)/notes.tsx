@@ -9,6 +9,7 @@ export default function NotesScreen() {
   const [studentId, setStudentId] = useState<number | null>(null);
 
   const [notes, setNotes] = useState({
+    materia: '',
     nota1: '',
     nota2: '',
     nota3: '',
@@ -25,7 +26,7 @@ export default function NotesScreen() {
       setStudentId(null);
       setDefinitivaVisible(false);
       setDefinitiva('');
-      setNotes({ nota1: '', nota2: '', nota3: '', nota4: '' });
+      setNotes({ materia: '', nota1: '', nota2: '', nota3: '', nota4: '' });
       
       const data = await appService.searchStudentId(cedula, nombre);
       const foundId = data?.estudiante_id;
@@ -61,6 +62,7 @@ export default function NotesScreen() {
       
       const notePayload: any = {
         estudiante_id: studentId,
+        materia: notes.materia.trim(),
         nota1: parseFloat(notes.nota1) || 0,
         nota2: parseFloat(notes.nota2) || 0,
         nota3: parseFloat(notes.nota3) || 0,
@@ -77,7 +79,7 @@ export default function NotesScreen() {
       setStudentId(null);
       setDefinitivaVisible(false);
       setDefinitiva('');
-      setNotes({ nota1: '', nota2: '', nota3: '', nota4: '' });
+      setNotes({ materia: '', nota1: '', nota2: '', nota3: '', nota4: '' });
 
     } catch (error) {
       console.error(error);
@@ -103,6 +105,16 @@ export default function NotesScreen() {
 
         {studentId && (
           <View style={styles.formContainer}>
+            <View style={styles.inputRow}>
+              <Text style={styles.label}>Materia</Text>
+              <TextInput
+                style={styles.input}
+                value={notes.materia}
+                onChangeText={(val) => setNotes(prev => ({ ...prev, materia: val }))}
+                placeholder="Nombre de la materia"
+              />
+            </View>
+
             {['nota1', 'nota2', 'nota3', 'nota4'].map((notaKey, index) => (
               <View style={styles.inputRow} key={notaKey}>
                 <Text style={styles.label}>Nota {index + 1}</Text>

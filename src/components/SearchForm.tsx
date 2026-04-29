@@ -7,7 +7,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
   const [nombre, setNombre] = useState('');
 
   const handleSearch = () => {
-    if (cedula.trim() && nombre.trim()) {
+    if (cedula.trim() || nombre.trim()) {
       onSearch(cedula.trim(), nombre.trim());
     }
   };

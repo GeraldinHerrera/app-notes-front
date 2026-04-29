@@ -4,7 +4,6 @@ export interface Student {
   nombre: string;
   correo: string;
   celular: string;
-  materia: string;
 }
 
 export interface Note {
